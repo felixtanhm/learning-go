@@ -1,0 +1,14 @@
+// Activity 2
+1. Initial: 20 80 40 25 60 30
+Split into [20, 80, 40] and [25, 60, 30].
+Split into [20] and [80, 40] | Split into [25] and [60, 30]
+Split into [20] [80] and [40] | Split into [25] [60] and [30]
+Merge [80] and [40]: [40, 80] 
+Merge [20] and [40, 80]: [20, 40, 80]
+Merge [60] and [30]: [30, 60]
+Merge [25] and [30, 60]: [25, 30, 60]
+Final Merge: [20, 40, 80] and [25, 30, 60]: [20, 25, 30, 40, 60, 80]
+
+2a. The recursive calls to mergesort depend only on the number of items in the array, not the values. Merge Sort consistently splits the array into halves regardless of the values in the array. This splitting continues until each segment contains only one element. Therefore, the recursion depth and structure depend only on the array's size.
+2b. The items in the array are actually sorted during the merge step. When two halves are merged, elements are compared and merged in sorted order, resulting in an increasingly larger sorted segment. This merging process arranges the elements in ascending order, effectively "swapping" them into the correct positions.
+3. Merge Sort is an efficient, stable sorting algorithm with a consistent time complexity of O(nlogn) across best, average, and worst cases, as it divides the array in half and merges each level with O(n) work. Although it is highly effective for large datasets due to its reliable performance, its O(n) space complexity can be a drawback in memory-limited environments since it requires additional memory for temporary arrays during merges. Merge Sort is especially well-suited for linked lists, where merging requires no extra space, and is often used in external sorting for managing data that cannot fit entirely in memory. However, its recursive structure can introduce overhead in environments with limited stack capacity.

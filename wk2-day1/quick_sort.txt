@@ -1,0 +1,25 @@
+// Activity 3
+1. Initial: [20, 80, 40, 25, 60, 10, 15]
+quickSort(array, 0, 6)
+partition(array, 0, 6) → Result: [15, 10, 20, 25, 60, 80, 40], pivot is 20, pivot index 2
+quickSort(array, 0, 1)
+partition(array, 0, 1) → Result: [10, 15, 20, 25, 60, 80, 40], pivot is 15, pivot index 1
+quickSort(array, 3, 6)
+partition(array, 3, 6) → Result: [10, 15, 20, 25, 60, 80, 40], pivot is 25, pivot index 3
+quickSort(array, 4, 6)
+partition(array, 4, 6) → Result: [10, 15, 20, 25, 40, 60, 80], pivot is 60, pivot index 5
+quickSort(array, 6, 6)
+
+2. If we choose the pivot as the middle value among the first, middle, and last elements, the number of recursive calls still depends on how well the pivot divides the array. Generally:
+
+Balanced Partitioning: Choosing the middle value often helps achieve balanced partitions, especially if the data is randomly ordered, yielding O(logn) levels of recursion and O(nlogn) performance overall.
+Unbalanced Partitions: If the pivot consistently results in unbalanced partitions, the recursive depth could approach O(n) (worst-case performance).
+
+For an array of size n, using the middle-of-three pivot strategy is more likely to approach O(logn) recursive depth, yielding roughly nlogn recursive calls in total.
+
+3. The worst-case performance of Quick Sort occurs when the pivot selection results in highly unbalanced partitions at each recursive call. This can happen in two main scenarios:
+
+Already Sorted or Nearly Sorted Arrays: If the array is already sorted (or nearly sorted) and the pivot is chosen as the first or last element, each partition results in a subarray with one element and a large remaining subarray. This leads to a linear recursion depth, making the time complexity O(n2).
+Repeated Elements with Poor Pivot Selection: If there are many duplicate elements and the pivot selection does not account for this, it can also result in unbalanced partitions, leading to O(n2) performance.
+
+To mitigate worst-case performance, selecting the middle-of-three values as the pivot or using randomized pivot selection helps improve balance and maintain O(nlogn) efficiency in most cases.
