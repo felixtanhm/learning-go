@@ -1,5 +1,0 @@
-name,type,capacity,availability
-Room A,room,5,TRUE
-Room B,room,10,FALSE
-Hall 1,hall,100,TRUE
-Hall 2,hall,120,FALSE

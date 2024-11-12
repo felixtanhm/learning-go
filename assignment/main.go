@@ -1,36 +1,35 @@
 package main
 
 import (
+	"assignment/models"
+	"assignment/src/utils"
+	"assignment/src/venues"
 	"bufio"
-	"encoding/csv"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
-type venue struct {
-	Uuid         string
-	Name         string
-	Type         string
-	Capacity     int
-	Availability bool
+type booking struct {
+	Uuid      string
+	VenueID   string
+	UserEmail string
 }
 
+var venueList []models.Venue
+
 func main() {
-	venueList := []venue{}
 	menuState := make(chan string)
 	newVenueState := make(chan bool)
 
-	go readCSV(&venueList)
+	go utils.ReadVenues(&venueList)
 	go func() {
 		menuState <- "userMenu"
 	}()
 	go func() {
 		if update, ok := <-newVenueState; update && ok {
-			go readCSV(&venueList)
+			go utils.ReadVenues(&venueList)
 		}
 	}()
 	for displayedMenu := range menuState {
@@ -85,7 +84,7 @@ func printUserMenu(menuState chan string) {
 	}
 }
 
-func printBrowseVenues(menuState chan string, venuesP *[]venue) {
+func printBrowseVenues(menuState chan string, venuesP *[]models.Venue) {
 	for _, venue := range *venuesP {
 		fmt.Printf("%v | Type: %v | Capacity: %v\n", venue.Name, venue.Type, venue.Capacity)
 	}
@@ -153,7 +152,7 @@ func printAddVenue(menuState chan string) {
 		return
 	}
 	channel := make(chan error, 1)
-	go addVenue(venueName, venueType, venueCapacity, true, channel)
+	go venues.AddVenue(venueName, venueType, venueCapacity, &venueList, channel)
 	if err, ok := <-channel; !ok && err != nil {
 		fmt.Printf("error adding venue: %v", err)
 		menuState <- "adminMenu"
@@ -162,83 +161,4 @@ func printAddVenue(menuState chan string) {
 		fmt.Printf("Your new venue, %v, has been added to the list of venues!", venueName)
 	}
 	menuState <- "userMenu"
-}
-
-func handlePanic() error {
-	if r := recover(); r != nil {
-		return fmt.Errorf("unhandled system error: %v", r)
-	}
-	return nil
-}
-
-func readCSV(venuesP *[]venue) error {
-	defer handlePanic()
-	fileName := "go_fundamentals_assignment.csv"
-	file, err := os.Open(fileName)
-	if err != nil {
-		return fmt.Errorf("error opening csv data file: %v", err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
-	if err != nil {
-		return fmt.Errorf("error reading csv data file: %v", err)
-	}
-	for i, row := range records {
-		if i == 0 {
-			continue
-		}
-		capacity, _ := strconv.Atoi(row[2])
-		availability, _ := strconv.ParseBool(row[3])
-		newVenue := venue{
-			Name:         row[0],
-			Type:         row[1],
-			Capacity:     capacity,
-			Availability: availability,
-		}
-		*venuesP = append(*venuesP, newVenue)
-	}
-	return nil
-}
-
-func writeCSV(newVenue venue) error {
-	defer handlePanic()
-	fileName := "go_fundamentals_assignment.csv"
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("error opening csv data file: %v", err)
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	capacity := strconv.Itoa(newVenue.Capacity)
-	availability := strconv.FormatBool(newVenue.Availability)
-	record := []string{
-		newVenue.Name, newVenue.Type, capacity, availability,
-	}
-
-	if err := writer.Write(record); err != nil {
-		return fmt.Errorf("error writing to csv data file: %v", err)
-	}
-	return nil
-}
-
-func addVenue(name string, venueType string, capacity int, availability bool, errChannel chan error) {
-	defer close(errChannel)
-
-	newUuid := uuid.New().String()
-	newVenue := venue{
-		Uuid:         newUuid,
-		Name:         name,
-		Type:         venueType,
-		Capacity:     capacity,
-		Availability: availability,
-	}
-	if err := writeCSV(newVenue); err != nil {
-		errChannel <- fmt.Errorf("error opening csv data file: %v", err)
-	}
-	errChannel <- nil
 }
