@@ -2,6 +2,7 @@ package utils
 
 import (
 	"assignment/models"
+	"assignment/src/bst"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -15,7 +16,7 @@ var bookingMutex sync.Mutex
 const venueDB = "./data/venueDB.csv"
 const bookingDB = "./data/bookingDB.csv"
 
-func ReadVenues(venuesP *[]models.Venue) error {
+func ReadVenues(venuesP *bst.BST) error {
 	defer handlePanic()
 	file, err := os.Open(venueDB)
 	if err != nil {
@@ -39,12 +40,12 @@ func ReadVenues(venuesP *[]models.Venue) error {
 			Type:     row[2],
 			Capacity: capacity,
 		}
-		*venuesP = append(*venuesP, newVenue)
+		venuesP.Insert(newVenue)
 	}
 	return nil
 }
 
-func WriteVenues(venuesP *[]models.Venue) error {
+func WriteVenues(venuesP *bst.BST) error {
 	venueMutex.Lock()
 	defer venueMutex.Unlock()
 	defer handlePanic()
@@ -62,7 +63,8 @@ func WriteVenues(venuesP *[]models.Venue) error {
 		return fmt.Errorf("error writing header to venue CSV: %v", err)
 	}
 
-	for _, venue := range *venuesP {
+	venuesList := venuesP.GetAll("inOrder")
+	for _, venue := range venuesList {
 		capacity := strconv.Itoa(venue.Capacity)
 		record := []string{
 			venue.Uuid, venue.Name, venue.Type, capacity,

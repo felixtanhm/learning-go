@@ -2,13 +2,14 @@ package venues
 
 import (
 	"assignment/models"
+	"assignment/src/bst"
 	"assignment/src/utils"
 	"fmt"
 
 	"github.com/google/uuid"
 )
 
-func AddVenue(name string, venueType string, capacity int, venuesP *[]models.Venue, errChannel chan error) {
+func AddVenue(name string, venueType string, capacity int, venuesP *bst.BST, errChannel chan error) {
 	defer close(errChannel)
 
 	newUuid := uuid.New().String()
@@ -18,9 +19,9 @@ func AddVenue(name string, venueType string, capacity int, venuesP *[]models.Ven
 		Type:     venueType,
 		Capacity: capacity,
 	}
-	*venuesP = append(*venuesP, newVenue)
+	venuesP.Insert(newVenue)
 	if err := utils.WriteVenues(venuesP); err != nil {
-		errChannel <- fmt.Errorf("error opening csv data file: %v", err)
+		errChannel <- fmt.Errorf("error writing to venue CSV: %v", err)
 	}
 	errChannel <- nil
 }
