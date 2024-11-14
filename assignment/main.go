@@ -1,14 +1,14 @@
 package main
 
 import (
-	"assignment/src/bst"
+	"assignment/models"
 	"assignment/src/print"
 	"assignment/src/utils"
 	"fmt"
 )
 
 func main() {
-	venueList := bst.Create()
+	venueList := models.CreateBST()
 	menuState := make(chan string)
 	newVenueState := make(chan bool)
 
@@ -26,7 +26,11 @@ func main() {
 		case "userMenu":
 			go print.UserMenu(menuState)
 		case "browseVenues":
-			go print.BrowseVenues(menuState, venueList)
+			go print.BrowseVenues(menuState, venueList, 1)
+		case "searchVenues":
+			go print.SearchVenues(menuState, venueList, "")
+		// case "bookVenue":
+		// 	go print.BookVenue()
 		case "adminMenu":
 			go print.AdminMenu(menuState)
 		case "addVenue":

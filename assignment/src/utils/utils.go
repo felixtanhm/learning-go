@@ -2,7 +2,6 @@ package utils
 
 import (
 	"assignment/models"
-	"assignment/src/bst"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -16,7 +15,7 @@ var bookingMutex sync.Mutex
 const venueDB = "./data/venueDB.csv"
 const bookingDB = "./data/bookingDB.csv"
 
-func ReadVenues(venuesP *bst.BST) error {
+func ReadVenues(venuesP *models.BST) error {
 	defer handlePanic()
 	file, err := os.Open(venueDB)
 	if err != nil {
@@ -45,7 +44,7 @@ func ReadVenues(venuesP *bst.BST) error {
 	return nil
 }
 
-func WriteVenues(venuesP *bst.BST) error {
+func WriteVenues(venuesP *models.BST) error {
 	venueMutex.Lock()
 	defer venueMutex.Unlock()
 	defer handlePanic()

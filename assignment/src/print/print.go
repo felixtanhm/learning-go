@@ -1,10 +1,11 @@
 package print
 
 import (
-	"assignment/src/bst"
+	"assignment/models"
 	"assignment/src/venues"
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -12,18 +13,22 @@ import (
 
 func UserMenu(menuState chan string) {
 	fmt.Println("")
-	fmt.Println("********************************************")
-	fmt.Println("*                                          *")
-	fmt.Println("*  Welcome to Felix's Venue Booking App    *")
-	fmt.Println("*                                          *")
-	fmt.Println("*  1. Browse Venues                        *")
-	fmt.Println("*  2. Book a Venue                         *")
-	fmt.Println("*  3. Admin Menu                           *")
-	fmt.Println("*  4. Close App                            *")
-	fmt.Println("*                                          *")
-	fmt.Println("*  Input menu item's number to navigate    *")
-	fmt.Println("*                                          *")
-	fmt.Println("********************************************")
+	fmt.Println("********************************************************************")
+	fmt.Println("*                                                                  *")
+	fmt.Println("*  Welcome to Felix's Venue Booking App                            *")
+	fmt.Println("*                                                                  *")
+	fmt.Println("*  1. Browse Venues                                                *")
+	fmt.Println("*  2. Search for a Venue                                           *")
+	fmt.Println("*  3. Book a Venue                                                 *")
+	fmt.Println("*  4. Admin Menu                                                   *")
+	fmt.Println("*  5. Close App                                                    *")
+	fmt.Println("*                                                                  *")
+	fmt.Println("*  Input menu item's number to navigate                            *")
+	fmt.Println("*                                                                  *")
+	fmt.Println("*  For the latest version, visit:                                  *")
+	fmt.Println("*  https://github.com/felixtanhm/learning-go/tree/main/assignment  *")
+	fmt.Println("*                                                                  *")
+	fmt.Println("********************************************************************")
 	fmt.Println("")
 	fmt.Println("Select an option: ")
 
@@ -31,13 +36,14 @@ func UserMenu(menuState chan string) {
 	fmt.Scan(&userNav)
 	switch userNav {
 	case 1:
-		// Code to execute if variable == value1
 		menuState <- "browseVenues"
 	case 2:
-		// Code to execute if variable == value2
+		menuState <- "searchVenues"
 	case 3:
-		menuState <- "adminMenu"
+		// code to execute if value is 3
 	case 4:
+		menuState <- "adminMenu"
+	case 5:
 		menuState <- "exit"
 	default:
 		fmt.Println("Invalid option, please select from the provided options.")
@@ -45,22 +51,81 @@ func UserMenu(menuState chan string) {
 	}
 }
 
-func BrowseVenues(menuState chan string, venuesP *bst.BST) {
-	venuesList := venuesP.GetAll("inOrder")
+func BrowseVenues(menuState chan string, venuesP *models.BST, page int) {
+	if page < 1 {
+		fmt.Println("Invalid Page.")
+		menuState <- "browseVenues"
+	}
+	limit := 5.0
+	maxPages := int(math.Ceil(venuesP.Count() / limit))
+	venuesList := venuesP.GetList("inOrder", page, int(limit))
+	fmt.Println("----------------------------")
+	fmt.Println("Results:")
 	for _, venue := range venuesList {
 		fmt.Printf("%v | Type: %v | Capacity: %v\n", venue.Name, venue.Type, venue.Capacity)
 	}
+
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println("Type \"Back\" to go back to menu.")
+	fmt.Println("----------------------------")
+	fmt.Printf("Viewing Page %d of %d.\n", page, maxPages)
+	fmt.Println("----------------------------")
+	fmt.Println("> Options:")
+
+	if maxPages > page {
+		fmt.Printf("> \"Next\" for next page\n")
+	}
+	if page > 1 {
+		fmt.Printf("> \"Prev\" for previous page\n")
+	}
+	fmt.Println("> \"Back\" to go back to menu.")
+	fmt.Println("----------------------------")
+
+	command, _ := reader.ReadString('\n')
+	command = strings.TrimSpace(command)
+	if command == "Back" {
+		menuState <- "userMenu"
+	} else if command == "Next" {
+		BrowseVenues(menuState, venuesP, page+1)
+	} else if command == "Prev" {
+		BrowseVenues(menuState, venuesP, page-1)
+	} else {
+		fmt.Println("Invalid Input.")
+		menuState <- "browseVenues"
+	}
+}
+
+func SearchVenues(menuState chan string, venuesP *models.BST, searchParam string) {
+	if searchParam != "" {
+		venue := venuesP.GetOne(searchParam)
+		fmt.Println("----------------------------")
+		fmt.Println("Result:")
+		if venue != nil {
+			fmt.Printf("%v | Type: %v | Capacity: %v\n", venue.Name, venue.Type, venue.Capacity)
+		} else {
+			fmt.Printf("No venues with the name \"%v\" was found.\n", searchParam)
+			SearchVenues(menuState, venuesP, "")
+		}
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("----------------------------")
+	fmt.Println("> Options:")
+	fmt.Println("> Search for a venue by name")
+	fmt.Println("> \"Back\" to go back to menu.")
+
 	command, _ := reader.ReadString('\n')
 	command = strings.TrimSpace(command)
 	if command == "Back" {
 		menuState <- "userMenu"
 	} else {
-		fmt.Println("Invalid Input.")
-		menuState <- "browseVenues"
+		SearchVenues(menuState, venuesP, command)
 	}
+}
+
+func BookVenue(menustate chan string, venuesP *models.BST) {
+
 }
 
 func AdminMenu(menuState chan string) {
@@ -95,7 +160,7 @@ func AdminMenu(menuState chan string) {
 	}
 }
 
-func AddVenue(menuState chan string, venuesP *bst.BST) {
+func AddVenue(menuState chan string, venuesP *models.BST) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Enter your venue name:")
