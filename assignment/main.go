@@ -2,6 +2,7 @@ package main
 
 import (
 	"assignment/models"
+	"assignment/src/constants"
 	"assignment/src/print"
 	"assignment/src/utils"
 	"fmt"
@@ -11,27 +12,32 @@ func main() {
 	venueList := models.CreateBST()
 	menuState := make(chan string)
 
-	go utils.LoadData(venueList)
+	go func() {
+		if err := utils.LoadData(venueList); err != nil {
+			fmt.Println("Failed to load data:", err)
+			menuState <- "exit" // Exit if data loading fails
+		}
+	}()
 	go func() {
 		menuState <- "userMenu"
 	}()
 	for displayedMenu := range menuState {
 		switch displayedMenu {
-		case "userMenu":
+		case constants.UserMenu:
 			go print.UserMenu(menuState)
-		case "browseVenues":
+		case constants.BrowseVenues:
 			go print.BrowseVenues(menuState, venueList, 1)
-		case "searchVenues":
+		case constants.SearchVenues:
 			go print.SearchVenues(menuState, venueList, "")
-		case "bookVenue":
+		case constants.BookVenue:
 			go print.BookVenue(menuState, venueList)
-		case "adminMenu":
+		case constants.AdminMenu:
 			go print.AdminMenu(menuState)
-		case "addVenue":
+		case constants.AddVenue:
 			go print.AddVenue(menuState, venueList)
-		case "getVenueBookings":
+		case constants.GetVenueBookings:
 			go print.GetVenueBookings(menuState, venueList, "")
-		case "exit":
+		case constants.Exit:
 			fmt.Println("Thanks! See you again! :)")
 			close(menuState)
 		}

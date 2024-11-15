@@ -18,12 +18,13 @@ type LinkedListNode struct {
 
 type LinkedList struct {
 	head  *LinkedListNode
+	tail  *LinkedListNode
 	size  int
 	mutex sync.Mutex
 }
 
 func CreateLinkedList() *LinkedList {
-	return &LinkedList{head: nil, size: 0}
+	return &LinkedList{head: nil, tail: nil, size: 0}
 }
 
 func (p *LinkedList) Insert(booking Booking) error {
@@ -36,14 +37,12 @@ func (p *LinkedList) Insert(booking Booking) error {
 	}
 	if p.head == nil {
 		p.head = newNode
+		p.tail = newNode
 	} else {
-		currentNode := p.head
-		for currentNode.next != nil {
-			currentNode = currentNode.next
-		}
-		currentNode.next = newNode
+		p.tail.next = newNode
+		p.tail = newNode
 	}
-	p.size += 1
+	p.size++
 	return nil
 }
 
@@ -61,8 +60,14 @@ func (p *LinkedList) Remove(uuid string) error {
 		if uuid == currentNode.booking.Uuid {
 			if prevNode == nil {
 				p.head = currentNode.next
+				if p.head == nil {
+					p.tail = nil
+				}
 			} else {
 				prevNode.next = currentNode.next
+				if currentNode == p.tail {
+					p.tail = prevNode
+				}
 			}
 			p.size--
 			return nil
@@ -71,7 +76,7 @@ func (p *LinkedList) Remove(uuid string) error {
 		currentNode = currentNode.next
 	}
 	p.size--
-	return nil
+	return fmt.Errorf("booking with UUID %v not found", uuid)
 }
 
 func (p *LinkedList) GetAll() []*Booking {

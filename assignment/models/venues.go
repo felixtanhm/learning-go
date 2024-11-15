@@ -28,11 +28,12 @@ func CreateBST() *BST {
 	return &BST{root: nil}
 }
 
-func (bst *BST) Insert(venue Venue) {
+func (bst *BST) Insert(venue Venue) error {
 	bst.mutex.Lock()
 	defer bst.mutex.Unlock()
 
 	bst.insertNode(&bst.root, venue)
+	return nil
 }
 
 func (bst *BST) GetAll(order string) []*Venue {

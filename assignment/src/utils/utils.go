@@ -2,10 +2,12 @@ package utils
 
 import (
 	"assignment/models"
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -60,6 +62,7 @@ func WriteVenues(venuesP *models.BST) error {
 	venueMutex.Lock()
 	defer venueMutex.Unlock()
 	defer handlePanic()
+
 	file, err := os.Create(venueDB)
 	if err != nil {
 		return fmt.Errorf("error opening venue CSV: %v", err)
@@ -156,4 +159,10 @@ func handlePanic() error {
 		return fmt.Errorf("unhandled system error: %v", r)
 	}
 	return nil
+}
+
+func ReadInput() string {
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }

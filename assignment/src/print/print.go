@@ -2,6 +2,8 @@ package print
 
 import (
 	"assignment/models"
+	"assignment/src/constants"
+	"assignment/src/utils"
 	"assignment/src/venues"
 	"bufio"
 	"fmt"
@@ -36,36 +38,39 @@ func UserMenu(menuState chan string) {
 	fmt.Scan(&userNav)
 	switch userNav {
 	case 1:
-		menuState <- "browseVenues"
+		menuState <- constants.BrowseVenues
 	case 2:
-		menuState <- "searchVenues"
+		menuState <- constants.SearchVenues
 	case 3:
-		menuState <- "bookVenue"
+		menuState <- constants.BookVenue
 	case 4:
-		menuState <- "adminMenu"
+		menuState <- constants.AdminMenu
 	case 5:
-		menuState <- "exit"
+		menuState <- constants.Exit
 	default:
 		fmt.Println("Invalid option, please select from the provided options.")
-		menuState <- "userMenu"
+		menuState <- constants.UserMenu
 	}
 }
 
 func BrowseVenues(menuState chan string, venuesP *models.BST, page int) {
 	if page < 1 {
 		fmt.Println("Invalid Page.")
-		menuState <- "browseVenues"
+		menuState <- constants.BrowseVenues
 	}
 	limit := 5.0
 	maxPages := int(math.Ceil(venuesP.Count() / limit))
 	venuesList := venuesP.GetList("inOrder", page, int(limit))
+	if len(venuesList) < 1 {
+		fmt.Println("No venues available.")
+		menuState <- constants.UserMenu
+		return
+	}
 	fmt.Println("----------------------------")
 	fmt.Println("Results:")
 	for _, venue := range venuesList {
 		fmt.Printf("%v | Type: %v | Capacity: %v\n", venue.Name, venue.Type, venue.Capacity)
 	}
-
-	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("----------------------------")
 	fmt.Printf("Viewing Page %d of %d.\n", page, maxPages)
@@ -81,17 +86,17 @@ func BrowseVenues(menuState chan string, venuesP *models.BST, page int) {
 	fmt.Println("> \"Back\" to go back to menu.")
 	fmt.Println("----------------------------")
 
-	command, _ := reader.ReadString('\n')
-	command = strings.TrimSpace(command)
-	if command == "Back" {
-		menuState <- "userMenu"
-	} else if command == "Next" {
+	command := utils.ReadInput()
+	switch command {
+	case "Back":
+		menuState <- constants.UserMenu
+	case "Next":
 		BrowseVenues(menuState, venuesP, page+1)
-	} else if command == "Prev" {
+	case "Prev":
 		BrowseVenues(menuState, venuesP, page-1)
-	} else {
+	default:
 		fmt.Println("Invalid Input.")
-		menuState <- "browseVenues"
+		menuState <- constants.BrowseVenues
 	}
 }
 
@@ -108,17 +113,14 @@ func SearchVenues(menuState chan string, venuesP *models.BST, searchParam string
 		}
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-
 	fmt.Println("----------------------------")
 	fmt.Println("> Options:")
 	fmt.Println("> Search for a venue by name")
 	fmt.Println("> \"Back\" to go back to menu.")
 
-	command, _ := reader.ReadString('\n')
-	command = strings.TrimSpace(command)
+	command := utils.ReadInput()
 	if command == "Back" {
-		menuState <- "userMenu"
+		menuState <- constants.UserMenu
 	} else {
 		SearchVenues(menuState, venuesP, command)
 	}
@@ -148,13 +150,13 @@ func BookVenue(menuState chan string, venuesP *models.BST) {
 	go venues.BookVenue(userEmail, venuesP, retrievedVenue, channel)
 	if err, ok := <-channel; ok && err != nil {
 		fmt.Printf("error booking venue: %v", err)
-		menuState <- "bookVenue"
+		menuState <- constants.BookVenue
 		return
 	} else {
 		fmt.Printf("You have made a booking for the %v venue. The admin will reach out to the email provided to confirm your booking.\n", venueName)
 	}
 
-	menuState <- "userMenu"
+	menuState <- constants.UserMenu
 }
 
 func AdminMenu(menuState chan string) {
@@ -177,40 +179,35 @@ func AdminMenu(menuState chan string) {
 	fmt.Scan(&userNav)
 	switch userNav {
 	case 1:
-		menuState <- "addVenue"
+		menuState <- constants.AddVenue
 	case 2:
-		menuState <- "getVenueBookings"
+		menuState <- constants.GetVenueBookings
 	case 3:
-		menuState <- "userMenu"
+		menuState <- constants.UserMenu
 	default:
 		fmt.Println("Invalid option, please select from the provided options.")
-		menuState <- "adminMenu"
+		menuState <- constants.AdminMenu
 	}
 }
 
 func AddVenue(menuState chan string, venuesP *models.BST) {
-	reader := bufio.NewReader(os.Stdin)
-
 	fmt.Println("> Enter your venue name:")
-	venueName, _ := reader.ReadString('\n')
-	venueName = strings.TrimSpace(venueName)
+	venueName := utils.ReadInput()
 
 	fmt.Println("> Enter your venue type (Room or Hall):")
-	venueType, _ := reader.ReadString('\n')
-	venueType = strings.ToLower(strings.TrimSpace(venueType))
+	venueType := strings.ToLower(utils.ReadInput())
 	if venueType != "room" && venueType != "hall" {
 		fmt.Println("Invalid venue type. Please enter either 'Room' or 'Hall'.")
-		menuState <- "addVenue"
+		menuState <- constants.AddVenue
 		return
 	}
 
 	fmt.Println("> Enter your venue capacity:")
-	venueCapacityStr, _ := reader.ReadString('\n')
-	venueCapacityStr = strings.TrimSpace(venueCapacityStr)
+	venueCapacityStr := utils.ReadInput()
 	venueCapacity, err := strconv.Atoi(venueCapacityStr)
 	if err != nil {
 		fmt.Println("Invalid integer entered.")
-		menuState <- "addVenue"
+		menuState <- constants.AddVenue
 		return
 	}
 
@@ -218,12 +215,12 @@ func AddVenue(menuState chan string, venuesP *models.BST) {
 	go venues.AddVenue(venueName, venueType, venueCapacity, venuesP, channel)
 	if err, ok := <-channel; ok && err != nil {
 		fmt.Printf("error adding venue: %v", err)
-		menuState <- "addVenue"
+		menuState <- constants.AddVenue
 		return
 	} else {
 		fmt.Printf("Your new venue, %v, has been added to the list of venues!", venueName)
 	}
-	menuState <- "adminMenu"
+	menuState <- constants.AdminMenu
 }
 
 func GetVenueBookings(menuState chan string, venuesP *models.BST, searchParam string) {
@@ -243,17 +240,14 @@ func GetVenueBookings(menuState chan string, venuesP *models.BST, searchParam st
 		}
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-
 	fmt.Println("----------------------------")
 	fmt.Println("> Options:")
 	fmt.Println("> Input the venue you want to retrieve the bookings for.")
 	fmt.Println("> \"Back\" to go back to menu.")
 
-	command, _ := reader.ReadString('\n')
-	command = strings.TrimSpace(command)
+	command := utils.ReadInput()
 	if command == "Back" {
-		menuState <- "adminMenu"
+		menuState <- constants.AdminMenu
 	} else {
 		GetVenueBookings(menuState, venuesP, command)
 	}
