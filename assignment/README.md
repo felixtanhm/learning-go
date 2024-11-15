@@ -17,16 +17,47 @@ The Venue Booking System is a command-line application designed to facilitate ve
 
 ---
 
-## Data Structures
-### Binary Search Tree (BST)
-- **Purpose**: Stores and organizes venues by their names.
-- **Advantages**: Efficient search, insertion, and traversal operations (average-case complexity: O(log n)).
-- **Implementation**: Built from scratch to meet assignment requirements.
+## Data Structures and Their Application
 
-### Linked List
-- **Purpose**: Each venue maintains a linked list of its bookings.
-- **Advantages**: Dynamic memory allocation and efficient management of venue-specific bookings.
-- **Implementation**: Pointer-based, built without relying on Go's built-in data structures.
+### 1. **Binary Search Tree (BST)**
+- **Application**:
+  - The Binary Search Tree (BST) is used to store and manage venue data.
+  - Venues are sorted by their names in the BST, which allows efficient operations such as searching for a venue, adding a new venue, or listing venues in sorted order.
+  - Traversal methods (e.g., in-order, pre-order, post-order) are used to retrieve venues in different formats, including paginated views.
+
+- **Suitability**:
+  - **Efficient Search**: Searching for a venue by name is a frequent operation in the system. The BST provides average-case time complexity of \(O(\log n)\), making these operations fast.
+  - **Scalability**: The BST structure can handle large numbers of venues without significant performance degradation.
+  - **Custom Implementation**: Since built-in data structures are not allowed, the custom BST implementation meets the requirement and ensures flexibility for operations specific to the application.
+
+---
+
+### 2. **Linked List**
+- **Application**:
+  - Each venue maintains a linked list to store its bookings.
+  - The linked list dynamically stores bookings associated with a venue, allowing operations such as adding a booking, retrieving all bookings, or removing a booking.
+
+- **Suitability**:
+  - **Dynamic Storage**: The linked list allows dynamic memory allocation, which is ideal for scenarios where the number of bookings varies for each venue.
+  - **Efficiency**: Adding new bookings is efficient, with a time complexity of \(O(1)\) for appending to the tail.
+  - **Pointer-Based Implementation**: This satisfies the requirement for a pointer-based data structure while ensuring that each venue's bookings are independently managed.
+
+---
+
+### Why These Data Structures Were Chosen
+1. **BST for Venues**:
+   - Venues need to be searchable, sortable, and retrievable efficiently.
+   - The BST ensures that insertion and retrieval operations are optimized for the given use case, especially when dealing with a large dataset.
+
+2. **Linked List for Bookings**:
+   - Bookings are tied to individual venues, making a per-venue linked list a natural fit.
+   - The dynamic nature of a linked list makes it ideal for scenarios where the number of bookings is unpredictable.
+
+3. **Separation of Concerns**:
+   - The BST handles the global organization of venues, while the linked list manages bookings on a per-venue basis. This division ensures modularity and clear data ownership.
+
+4. **Custom Implementation**:
+   - Both data structures are implemented from scratch without relying on Go’s standard library, demonstrating a deep understanding of data structures and their applications.
 
 ---
 
