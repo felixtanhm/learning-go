@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sync"
 )
 
 type Booking struct {
@@ -16,11 +17,19 @@ type LinkedListNode struct {
 }
 
 type LinkedList struct {
-	head *LinkedListNode
-	size int
+	head  *LinkedListNode
+	size  int
+	mutex sync.Mutex
 }
 
-func (p *LinkedList) addNode(booking Booking) error {
+func CreateLinkedList() *LinkedList {
+	return &LinkedList{head: nil, size: 0}
+}
+
+func (p *LinkedList) Insert(booking Booking) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	newNode := &LinkedListNode{
 		booking: booking,
 		next:    nil,
@@ -38,74 +47,46 @@ func (p *LinkedList) addNode(booking Booking) error {
 	return nil
 }
 
-func (p *LinkedList) removeNode(index int) error {
+func (p *LinkedList) Remove(uuid string) error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	if p.head == nil {
-		fmt.Println("Bookings for this venue is empty.")
+		return fmt.Errorf("bookings for this venue is empty")
 	}
+	var prevNode *LinkedListNode
 	currentNode := p.head
-	if index == 0 {
-		p.head = currentNode.next
-	} else {
-		for i := 0; i < index-1; i++ {
-			currentNode = currentNode.next
+
+	for currentNode != nil {
+		if uuid == currentNode.booking.Uuid {
+			if prevNode == nil {
+				p.head = currentNode.next
+			} else {
+				prevNode.next = currentNode.next
+			}
+			p.size--
+			return nil
 		}
-		nextNode := currentNode.next
-		currentNode.next = nextNode.next
+		prevNode = currentNode
+		currentNode = currentNode.next
 	}
 	p.size--
 	return nil
 }
 
-func (p *LinkedList) addAtPos(index int, booking Booking) error {
-	newNode := &LinkedListNode{
-		booking: booking,
-		next:    nil,
-	}
-	if p.head == nil {
-		p.head = newNode
-		return nil
-	}
-	currentNode := p.head
-	if index == 0 {
-		p.head = newNode
-	} else {
-		for i := 0; i < index-1; i++ {
-			currentNode = currentNode.next
-		}
-		nextNode := currentNode.next
-		currentNode.next = newNode
-		newNode.next = nextNode
+func (p *LinkedList) GetAll() []*Booking {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 
-	}
-	p.size += 1
-	return nil
-}
-
-func (p *LinkedList) get(index int) (LinkedListNode, error) {
-	currentNode := p.head
-	if p.head == nil {
-		fmt.Println("Linked list is empty.")
-		return *currentNode, nil
-	}
-	if index > 0 {
-		for i := 0; i < index-1; i++ {
-			currentNode = currentNode.next
-		}
-	}
-	return *currentNode.next, nil
-}
-
-func (p *LinkedList) printAllNodes() error {
+	var results []*Booking
 	currentNode := p.head
 	if currentNode == nil {
-		fmt.Println("Bookings for this venue is empty.")
-		return nil
+		return results
 	}
-	fmt.Printf("%+v\n", currentNode.booking)
+	results = append(results, &currentNode.booking)
 	for currentNode.next != nil {
 		currentNode = currentNode.next
-		fmt.Printf("%+v\n", currentNode.booking)
+		results = append(results, &currentNode.booking)
 	}
-
-	return nil
+	return results
 }

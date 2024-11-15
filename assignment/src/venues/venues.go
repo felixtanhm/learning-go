@@ -17,11 +17,26 @@ func AddVenue(name string, venueType string, capacity int, venuesP *models.BST, 
 		Name:        name,
 		Type:        venueType,
 		Capacity:    capacity,
-		BookingList: models.LinkedList{},
+		BookingList: models.CreateLinkedList(),
 	}
 	venuesP.Insert(newVenue)
 	if err := utils.WriteVenues(venuesP); err != nil {
 		errChannel <- fmt.Errorf("error writing to venue CSV: %v", err)
 	}
-	errChannel <- nil
+}
+
+func BookVenue(userEmail string, venuesP *models.BST, venue *models.Venue, errChannel chan error) {
+	defer close(errChannel)
+
+	newUuid := uuid.New().String()
+	newBooking := models.Booking{
+		Uuid:      newUuid,
+		VenueID:   venue.Uuid,
+		UserEmail: userEmail,
+	}
+
+	venue.BookingList.Insert(newBooking)
+	if err := utils.WriteBookings(venuesP); err != nil {
+		errChannel <- fmt.Errorf("error writing to booking csv %v", err)
+	}
 }

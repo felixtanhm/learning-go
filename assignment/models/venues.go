@@ -10,13 +10,13 @@ type Venue struct {
 	Name        string
 	Type        string
 	Capacity    int
-	BookingList LinkedList
+	BookingList *LinkedList
 }
 
 type BinaryNode struct {
-	venue Venue       // to store the data item
-	left  *BinaryNode // pointer to point to left node
-	right *BinaryNode // pointer to point to right node
+	venue Venue
+	left  *BinaryNode
+	right *BinaryNode
 }
 
 type BST struct {

@@ -10,16 +10,10 @@ import (
 func main() {
 	venueList := models.CreateBST()
 	menuState := make(chan string)
-	newVenueState := make(chan bool)
 
-	go utils.ReadVenues(venueList)
+	go utils.LoadData(venueList)
 	go func() {
 		menuState <- "userMenu"
-	}()
-	go func() {
-		if update, ok := <-newVenueState; update && ok {
-			go utils.ReadVenues(venueList)
-		}
 	}()
 	for displayedMenu := range menuState {
 		switch displayedMenu {
@@ -29,12 +23,14 @@ func main() {
 			go print.BrowseVenues(menuState, venueList, 1)
 		case "searchVenues":
 			go print.SearchVenues(menuState, venueList, "")
-		// case "bookVenue":
-		// 	go print.BookVenue()
+		case "bookVenue":
+			go print.BookVenue(menuState, venueList)
 		case "adminMenu":
 			go print.AdminMenu(menuState)
 		case "addVenue":
 			go print.AddVenue(menuState, venueList)
+		case "getVenueBookings":
+			go print.GetVenueBookings(menuState, venueList, "")
 		case "exit":
 			fmt.Println("Thanks! See you again! :)")
 			close(menuState)
